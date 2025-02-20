@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepFake Video Detection</title>
+  <style>
+    :root {
+      --primary-green: #76b82a;
+      --dark-green: #2a5f13;
+      --light-green: #c5e39b;
+      --white: #ffffff;
+      --black: #111111;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+    body {
+      background-color: var(--primary-green);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+    
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    .navigation {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-link {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: opacity 0.3s ease;
+    }
+    
+    .nav-link:hover {
+      opacity: 0.8;
+    }
+    
+    .hero-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .tagline {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      letter-spacing: 1px;
+    }
+    
+    .headline {
+      font-size: 5rem;
+      font-weight: 900;
+      margin-bottom: 2rem;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+    }
+    
+    .explainer {
+      max-width: 500px;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+    
+    .upload-container {
+      background-color: var(--dark-green);
+      padding: 3rem;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    
+    .upload-area {
+      border: 2px dashed var(--light-green);
+      padding: 2rem;
+      text-align: center;
+      border-radius: 10px;
+      background-color: rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .upload-area:hover {
+      background-color: rgba(0,0,0,0.2);
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .upload-text {
+      margin-bottom: 1rem;
+    }
+    
+    .browse-btn {
+      background-color: var(--primary-green);
+      color: var(--white);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .browse-btn:hover {
+      background-color: var(--white);
+      color: var(--primary-green);
+    }
+    
+    .action-btn {
+      background-color: var(--white);
+      color: var(--primary-green);
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .action-btn:hover {
+      background-color: var(--black);
+      color: var(--white);
+    }
+    
+    .video-player {
+      max-width: 100%;
+      margin-bottom: 2rem;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .video-player video {
+      width: 100%;
+      display: block;
+    }
+    
+    .result-container {
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .result {
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .result.real {
+      color: #2ecc71;
+    }
+    
+    .result.fake {
+      color: #e74c3c;
+    }
+    
+    .flash-messages {
+      list-style: none;
+      margin-bottom: 1rem;
+    }
+    
+    .flash-messages li {
+      background-color: rgba(0,0,0,0.2);
+      padding: 0.75rem;
+      border-radius: 5px;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">DEEP·DETECT</div>
+    <nav class="navigation">
+      <a href="#" class="nav-link">HOME</a>
+      <a href="#" class="nav-link">ABOUT</a>
+      <a href="#" class="nav-link">CONTACT</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero-section">
+      <p class="tagline">AI-POWERED VIDEO ANALYSIS</p>
+      <h1 class="headline">REAL OR FAKE?</h1>
+      <p class="explainer">Our advanced deepfake detection system helps you identify manipulated video content with industry-leading accuracy.</p>
+    </section>
+
+    <div class="upload-container">
+      <ul class="flash-messages">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+      </ul>
+
+      {% if filename %}
+        <div class="video-player">
+          <video autoplay controls preload="auto">
+            <source src="{{ url_for('display_video', filename=filename) }}" type="video/mp4">
+          </video>
+        </div>
+      {% endif %}
+
+      <form method="post" action="/" enctype="multipart/form-data">
+        <div class="upload-area" id="drop-area">
+          <div class="upload-icon">📁</div>
+          <p class="upload-text">Drag and drop your video file here</p>
+          <p>or</p>
+          <input type="file" name="file" id="file-input" class="file-input" accept="video/*" required>
+          <button type="button" class="browse-btn" onclick="document.getElementById('file-input').click()">
+            Browse Files
+          </button>
+        </div>
+        <div style="text-align: center;">
+          <button type="submit" class="action-btn">Upload Video</button>
+        </div>
+      </form>
+      
+      {% if filename %}
+        <form method="get" action="{{ url_for('sequence_prediction', filename=filename) }}" style="text-align: center;">
+          <button type="submit" name="predict" class="action-btn">Analyze Video</button>
+        </form>
+      {% endif %}
+    </div>
+
+    {% if prediction %}
+      <div class="result-container">
+        <h2 class="result {% if prediction == 'REAL' %}real{% else %}fake{% endif %}">
+          {{ prediction }}
+        </h2>
+      </div>
+    {% endif %}
+  </main>
+
+  <script>
+    // Handle drag and drop functionality
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+      dropArea.style.borderColor = '#ffffff';
+      dropArea.style.backgroundColor = 'rgba(0,0,0,0.3)';
+    }
+    
+    function unhighlight() {
+      dropArea.style.borderColor = '#c5e39b';
+      dropArea.style.backgroundColor = 'rgba(0,0,0,0.1)';
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      fileInput.files = files;
+    }
+    
+    // Handle result color
+    document.addEventListener('DOMContentLoaded', function() {
+      const result = document.querySelector('.result');
+      if (result) {
+        if (result.innerText.trim() === 'REAL') {
+          result.classList.add('real');
+        } else {
+          result.classList.add('fake');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
