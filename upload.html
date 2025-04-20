@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepFake Video Detection</title>
+  <style>
+    :root {
+      --primary-green: #76b82a;
+      --dark-green: #2a5f13;
+      --light-green: #c5e39b;
+      --white: #ffffff;
+      --black: #111111;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+    body {
+      background-color: var(--primary-green);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+    }
+    
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    
+    .navigation {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-link {
+      color: var(--white);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: opacity 0.3s ease;
+    }
+    
+    .nav-link:hover {
+      opacity: 0.8;
+    }
+    
+    .hero-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .tagline {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      letter-spacing: 1px;
+    }
+    
+    .headline {
+      font-size: 5rem;
+      font-weight: 900;
+      margin-bottom: 2rem;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+    }
+    
+    .explainer {
+      max-width: 500px;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+    
+    .upload-container {
+      background-color: var(--dark-green);
+      padding: 3rem;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+    
+    .upload-area {
+      border: 2px dashed var(--light-green);
+      padding: 2rem;
+      text-align: center;
+      border-radius: 10px;
+      background-color: rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      transition: all 0.3s ease;
+    }
+    
+    .upload-area:hover {
+      background-color: rgba(0,0,0,0.2);
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .upload-text {
+      margin-bottom: 1rem;
+    }
+    
+    .browse-btn {
+      background-color: var(--primary-green);
+      color: var(--white);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .browse-btn:hover {
+      background-color: var(--white);
+      color: var(--primary-green);
+    }
+    
+    .action-btn {
+      background-color: var(--white);
+      color: var(--primary-green);
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .action-btn:hover {
+      background-color: var(--black);
+      color: var(--white);
+    }
+    
+    .video-player {
+      max-width: 100%;
+      margin-bottom: 2rem;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .video-player video {
+      width: 100%;
+      display: block;
+    }
+    
+    .result-container {
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .result {
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .result.real {
+      color: #2ecc71;
+    }
+    
+    .result.fake {
+      color: #e74c3c;
+    }
+    
+    .flash-messages {
+      list-style: none;
+      margin-bottom: 1rem;
+    }
+    
+    .flash-messages li {
+      background-color: rgba(0,0,0,0.2);
+      padding: 0.75rem;
+      border-radius: 5px;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">DEEP·DETECT</div>
+    <nav class="navigation">
+      <a href="#" class="nav-link">HOME</a>
+      <a href="#" class="nav-link">ABOUT</a>
+      <a href="#" class="nav-link">CONTACT</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero-section">
+      <p class="tagline">AI-POWERED VIDEO ANALYSIS</p>
+      <h1 class="headline">REAL OR FAKE?</h1>
+      <p class="explainer">Our advanced deepfake detection system helps you identify manipulated video content with industry-leading accuracy.</p>
+    </section>
+
+    <div class="upload-container">
+      <ul class="flash-messages" id="flash-messages"></ul>
+
+      <div class="video-player" id="video-player" style="display: none;">
+        <video controls preload="auto"></video>
+      </div>
+
+      <div class="upload-area" id="drop-area">
+        <div class="upload-icon">📁</div>
+        <p class="upload-text">Drag and drop your video file here</p>
+        <p>or</p>
+        <input type="file" id="file-input" class="file-input" accept="video/*">
+        <button type="button" class="browse-btn" onclick="document.getElementById('file-input').click()">Browse Files</button>
+      </div>
+      <div style="text-align: center;">
+        <button class="action-btn" onclick="uploadVideo()" id="upload-btn">Upload Video</button>
+        <button class="action-btn" onclick="analyzeVideo()" id="analyze-btn" style="display: none;">Analyze Video</button>
+      </div>
+
+      <div class="result-container" id="result-container" style="display: none;">
+        <h2 class="result" id="result-text"></h2>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const flashMessages = document.getElementById('flash-messages');
+    const videoPlayer = document.getElementById('video-player');
+    const videoElement = videoPlayer.querySelector('video');
+    const uploadBtn = document.getElementById('upload-btn');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const resultContainer = document.getElementById('result-container');
+    const resultText = document.getElementById('result-text');
+
+    // Replace with your Flask backend URL (e.g., ngrok URL)
+    const BACKEND_URL = 'YOUR_FLASK_NGROK_URL'; // e.g., https://abc123.ngrok.io
+
+    let uploadedFilename = null;
+
+    // Handle drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+      dropArea.style.borderColor = '#ffffff';
+      dropArea.style.backgroundColor = 'rgba(0,0,0,0.3)';
+    }
+
+    function unhighlight() {
+      dropArea.style.borderColor = '#c5e39b';
+      dropArea.style.backgroundColor = 'rgba(0,0,0,0.1)';
+    }
+
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      fileInput.files = files;
+    }
+
+    // Upload video to Flask backend
+    async function uploadVideo() {
+      const file = fileInput.files[0];
+      if (!file) {
+        showFlashMessage('No file selected for uploading');
+        return;
+      }
+
+      const allowedExtensions = ['mp4', 'avi', 'mov', 'wmv'];
+      const extension = file.name.split('.').pop().toLowerCase();
+      if (!allowedExtensions.includes(extension)) {
+        showFlashMessage('Allowed file types are mp4, avi, mov, wmv');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        uploadBtn.disabled = true;
+        uploadBtn.innerText = 'Uploading...';
+
+        const response = await fetch(`${BACKEND_URL}/`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          uploadedFilename = data.filename;
+          showFlashMessage('File successfully uploaded');
+
+          // Display the uploaded video
+          const videoUrl = `${BACKEND_URL}/static/uploads/${uploadedFilename}`;
+          videoElement.src = videoUrl;
+          videoPlayer.style.display = 'block';
+          analyzeBtn.style.display = 'block';
+        } else {
+          showFlashMessage(data.error || 'Upload failed');
+        }
+      } catch (error) {
+        showFlashMessage(`Error: ${error.message}`);
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.innerText = 'Upload Video';
+      }
+    }
+
+    // Analyze video by calling predict endpoint
+    async function analyzeVideo() {
+      if (!uploadedFilename) {
+        showFlashMessage('No video uploaded');
+        return;
+      }
+
+      try {
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerText = 'Analyzing...';
+
+        const response = await fetch(`${BACKEND_URL}/predict/${uploadedFilename}`, {
+          method: 'GET'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          resultText.innerText = data.prediction;
+          resultText.className = `result ${data.prediction === 'REAL' ? 'real' : 'fake'}`;
+          resultContainer.style.display = 'block';
+        } else {
+          showFlashMessage(data.error || 'Prediction failed');
+        }
+      } catch (error) {
+        showFlashMessage(`Error: ${error.message}`);
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerText = 'Analyze Video';
+      }
+    }
+
+    // Display flash messages
+    function showFlashMessage(message) {
+      const li = document.createElement('li');
+      li.innerText = message;
+      flashMessages.appendChild(li);
+      setTimeout(() => li.remove(), 5000);
+    }
+  </script>
+</body>
+</html>
